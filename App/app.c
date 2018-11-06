@@ -15,11 +15,13 @@ static uint32_t draw_time = 0;
 static uint8_t enters = 0;
 
 
-SSD1306_INIT_t ssd_init = {&hi2c1,0x78};
+SSD1306_INIT_t ssd_init = {&hi2c1,0x78,64,16};
 DSPInitStruct_t dsp_init = {&ssd1306_driver, &ssd_init};
 
 uint8_t dsp_handle = 0;
 uint8_t st_handle = 0;
+
+uint8_t angle_code = 0;
 
 //
 //Private forwards
@@ -38,10 +40,7 @@ void app_init()
 	dspClearScreen(dsp_handle);
 	dspPushScreen(dsp_handle);
 
-	//Check LoRa
-	//uint8_t buf[2] = {0x42,0xff};
-	//HAL_SPI_TransmitReceive(&hspi1,buf, buf, 2, 10);
-	//if (buf[1] != 0x12) Error_Handler();
+	dspSetBrightnes(dsp_handle, 0);
 }
 
 void app_step()
@@ -84,9 +83,13 @@ void draw_scene()
 	dspDrawBitmap(dsp_handle, 0,1, &sattelite_bmp);
 	dspDrawString(dsp_handle, 60, 7, &font_Courier_New_10pt, (uint8_t*)"\"SSD 1306\"",DSP_TextAllignCenter);
 
-
 	dspPushScreen(dsp_handle);
 
 	enters++;
-	if (enters > 125) enters = 0;
+	if (enters > 125)
+	{
+		enters = 0;
+		angle_code = 2 - angle_code;
+		dspRotate(dsp_handle, angle_code);
+	}
 }

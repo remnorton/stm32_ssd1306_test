@@ -14,6 +14,7 @@
 
 void dspInit();
 uint8_t dspOpen(DSPInitStruct_t* init);
+void dspClose(uint8_t handle);
 uint16_t dspGetId(uint8_t handle);
 uint16_t dspGetScreenWidth(uint8_t handle);
 uint16_t dspGetScreenHeight(uint8_t handle);
@@ -25,7 +26,7 @@ void dspClearScreen(uint8_t handle);
 
 void dspSetInverse(uint8_t handle, uint8_t inverse);
 void dspSwitchOn(uint8_t handle, uint8_t active);
-void dspSetContrast(uint8_t handle, uint32_t level);
+void dspSetBrightnes(uint8_t handle, uint32_t level);
 
 void dspDrawPixel(uint8_t handle, uint32_t x, uint32_t y, uint32_t color);
 void dspDrawLine(uint8_t handle, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2);
@@ -48,6 +49,8 @@ uint32_t dspPixColor(uint8_t handle, uint32_t x, uint32_t y);
 uint32_t dspBitPerPixel(uint8_t handle);
 void dspDrawBitmap(uint8_t handle, uint32_t x, uint32_t y, DSP_Bitmap_t* bmp);
 void dspDrawImage(uint8_t handle, uint32_t x, uint32_t y, DSP_Image_t* img);
+
+void dspRotate(uint8_t handle, uint8_t angle_code);
 
 //
 //

@@ -6,17 +6,20 @@
  *
  */
 #include <string.h>
+#include <stdlib.h>
 #include "ssd1306.h"
 
 #define _SSD1306_ID_                (uint16_t)0x1306
 #define _SSD1306_SCREEN_WIDTH_      (uint16_t)128
-#define _SSD1306_SCREEN_HEIGHT_     (uint16_t)64
 #define _SSD1306_BPP_               (uint32_t)0x01
+#define _SSD1306_YELLOW_LINES_		(uint8_t)0x10	//16 yellow lines.
 
 #define _SSD1306_CMD_BUF_LEN_       (uint16_t)50
 
 static SSD1306_INIT_t* instance = 0;
-static uint8_t screen_buffer[_SSD1306_SCREEN_WIDTH_*_SSD1306_SCREEN_HEIGHT_/8];
+//static uint8_t screen_buffer[_SSD1306_SCREEN_WIDTH_*_SSD1306_SCREEN_HEIGHT_/8];
+static uint8_t* screen_buffer = 0;
+static uint16_t buf_size = 0;
 
 static uint8_t init_sequence[] = {
                             0xAE,       //display off,
@@ -47,6 +50,7 @@ static uint8_t init_sequence[] = {
 
 void ssd1306_send_commands(uint8_t* commands, uint8_t len)
 {
+	if (!instance) return;
     HAL_I2C_Mem_Write(instance->i2c, instance->dsp_addr, 0x00, 1, commands, len, 10);
 }
 
@@ -63,44 +67,73 @@ uint16_t ssd1306_get_screen_width()
 
 uint16_t ssd1306_get_screen_height()
 {
-    return _SSD1306_SCREEN_HEIGHT_;
+	if (!instance) return 0;
+    return instance->height;
 }
 
 void ssd1306_push_screen()
 {
-    HAL_I2C_Mem_Write(instance->i2c, instance->dsp_addr,0x40,1,screen_buffer,sizeof(screen_buffer),100);
+	if (!instance) return;
+    HAL_I2C_Mem_Write(instance->i2c, instance->dsp_addr,0x40,1,screen_buffer,buf_size,100);
 }
 
-void ssd1306_init(void* init)
+void ssd1306_switch_on(uint8_t active)
 {
-    instance = (SSD1306_INIT_t*)init;
-    ssd1306_send_commands(init_sequence, sizeof(init_sequence));
+	if (!instance) return;
+    uint8_t cmd = active?0xAF:0xAE;//--turn on SSD1306 panel
+    ssd1306_send_commands(&cmd, 1);
+}
+
+uint8_t ssd1306_init(void* init)
+{
+	if (!init) return 0;
+	instance = (SSD1306_INIT_t*)init;
+	buf_size = _SSD1306_SCREEN_WIDTH_*(instance->height)/8;
+	screen_buffer = (uint8_t*)calloc(1,buf_size);
+	if (!screen_buffer)
+	{
+		instance = 0;
+		return 0;
+	}
+	ssd1306_send_commands(init_sequence, sizeof(init_sequence));
+	return 1;
+}
+
+void ssd1306_deInit()
+{
+	if (!instance) return;
+	ssd1306_switch_on(0);
+	if (screen_buffer)
+	{
+		free(screen_buffer);
+		screen_buffer = 0;
+		buf_size = 0;
+	}
+	instance = 0;
 }
 
 uint16_t ssd1306_get_id()
 {
+	if (!instance) return 0;
     return _SSD1306_ID_;
 }
 
 void ssd1306_clear_screen(uint32_t color)
 {
-    memset(screen_buffer, (color == DSP_COLOR_Black)?0x00:0xff, sizeof(screen_buffer));
+	if (!instance) return;
+    memset(screen_buffer, (color == DSP_COLOR_Black)?0x00:0xff, buf_size);
 }
 
 void ssd1306_set_inverse(uint8_t inverse)
 {
+	if (!instance) return;
     uint8_t cmd = inverse?0xA7:0xA6;
     ssd1306_send_commands(&cmd,1);
 }
 
-void ssd1306_switch_on(uint8_t active)
+void ssd1306_set_brightnes(uint32_t level)
 {
-    uint8_t cmd = active?0xAF:0xAE;//--turn on SSD1306 panel
-    ssd1306_send_commands(&cmd, 1);
-}
-
-void ssd1306_set_contrast(uint32_t level)
-{
+	if (!instance) return;
     if (level > 255) level = 255;
     uint8_t cmd[2] = {0x81,(uint8_t)(level & 0xff)};
     ssd1306_send_commands(cmd, sizeof(cmd));
@@ -108,6 +141,7 @@ void ssd1306_set_contrast(uint32_t level)
 
 void ssd1306_draw_pixel(uint32_t x, uint32_t y, uint32_t color)
 {
+	if (!instance) return;
     if ((x >= ssd1306_get_screen_width()) || (y >= ssd1306_get_screen_height())) return;
     if (color == DSP_COLOR_White)
         screen_buffer[x + (y / 8) * ssd1306_get_screen_width()] |= 1 << (y % 8);
@@ -117,6 +151,7 @@ void ssd1306_draw_pixel(uint32_t x, uint32_t y, uint32_t color)
 
 void ssd1306_draw_bitmap(uint32_t x, uint32_t y, DSP_Bitmap_t* bmp, uint32_t color)
 {
+	if (!instance) return;
     if (!bmp) return;
     uint32_t width = bmp->width;
     while (width % 8) width++;
@@ -132,6 +167,7 @@ void ssd1306_draw_bitmap(uint32_t x, uint32_t y, DSP_Bitmap_t* bmp, uint32_t col
 
 uint16_t ssd1306_draw_char(uint32_t x, uint32_t y, Font_type_t* font, uint8_t sym, uint32_t color)
 {
+	if (!instance) return 0;
 	if (!font) return 0;
 	if (sym > font->stop) return 0;
 	uint8_t vs = (font->descr)?1:0;
@@ -163,12 +199,14 @@ uint16_t ssd1306_draw_char(uint32_t x, uint32_t y, Font_type_t* font, uint8_t sy
 uint32_t ssd1306_rgb_color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
 {
     UNUSED(alpha);
+    if (!instance) return 0;
     uint32_t res = (red+green+blue);
     return (res > 0)?1:0;
 }
 
 uint32_t ssd1306_pixel_color(uint32_t x, uint32_t y)
 {
+	if (!instance) return 0;
     if ((x > ssd1306_get_screen_width()) || (y > ssd1306_get_screen_height())) return DSP_COLOR_Black;
     if (screen_buffer[x + (y / 8) * ssd1306_get_screen_width()] & (1 << (y % 8)) ) return DSP_COLOR_White;
     return DSP_COLOR_Black;
@@ -176,15 +214,37 @@ uint32_t ssd1306_pixel_color(uint32_t x, uint32_t y)
 
 uint32_t ssd1306_bit_per_pixel()
 {
+	if (!instance) return 0;
     return _SSD1306_BPP_;
 }
 
 RGB_Color_t ssd1306_decode_color(uint32_t color)
 {
+	if (!instance) return (RGB_Color_t){0,0,0,0};
     RGB_Color_t res = {0,0,0,255};
     if (color)
         res.green = res.blue = res.red = 255;
     return res;
+}
+
+void ssd1306_rotate(uint8_t angle_code)
+{
+	if (!instance) return;
+	switch(angle_code)
+	{
+		case DSP_Rotate_0:
+		{
+			uint8_t cmd[] = {0xc8,0xa1,0xd3,0x00};
+			ssd1306_send_commands(cmd, sizeof(cmd));
+			break;
+		}
+		case DSP_Rotate_180:
+		{
+			uint8_t cmd[] = {0xc0,0xa0,0xd3,_SSD1306_YELLOW_LINES_};
+			ssd1306_send_commands(cmd, sizeof(cmd));
+			break;
+		}
+	}
 }
 
 //
@@ -193,13 +253,14 @@ RGB_Color_t ssd1306_decode_color(uint32_t color)
 
 DSP_DriverDef_t ssd1306_driver = {
         ssd1306_init,                   //void        (*init)(void*);
+		0,//void		(*deInit)();
         ssd1306_get_id,                 //uint16_t    (*getId)();
         ssd1306_get_screen_width,       //uint16_t    (*screenWidth)();
         ssd1306_get_screen_height,      //uint16_t    (*screenHeight)();
         ssd1306_clear_screen,           //void        (*clearScreen)(uint32_t);
         ssd1306_set_inverse,            //void        (*setInverse)(uint8_t);
         ssd1306_switch_on,              //void        (*switchOn)(uint8_t);
-        ssd1306_set_contrast,           //void        (*setContrast)(uint32_t);
+		ssd1306_set_brightnes,          //void        (*setBrightnes)(uint32_t);
         ssd1306_draw_pixel,             //void        (*drawPixel)(uint32_t, uint32_t, uint32_t);
         0,                              //void        (*drawLine)(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
         0,                              //void        (*drawRectangle)(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
@@ -214,5 +275,6 @@ DSP_DriverDef_t ssd1306_driver = {
         ssd1306_bit_per_pixel,          //uint32_t    (*bitPerPixel)();
         ssd1306_draw_bitmap,            //void        (*drawBitmap)(uint32_t, uint32_t, DSP_Bitmap_t*);
 		0,								//void		  (*drawImage)(uint32_t, uint32_t, DSP_Image_t*);
-        ssd1306_decode_color            //RGB_Color_t (*decodeColor)(uint32_t);
+        ssd1306_decode_color,           //RGB_Color_t (*decodeColor)(uint32_t);
+		ssd1306_rotate,					//void		  (*rotate)(uint8_t);
 };

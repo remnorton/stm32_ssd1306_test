@@ -27,12 +27,6 @@ static DSP_InfoStruct_t dsp[_MAX_DSP_];
 static uint8_t dd_idx = 0;
 
 //
-//Private forwards
-//
-uint8_t dspFontXScale(uint8_t handle);
-uint8_t dspFontYScale(uint8_t handle);
-
-//
 //
 //
 
@@ -55,6 +49,14 @@ uint8_t dspOpen(DSPInitStruct_t* init)
     init->driver->init(init->drvSettings);
     dsp[dd_idx++].init = init;
     return dd_idx;
+}
+
+void dspClose(uint8_t handle)
+{
+	if (!handle) return;
+	if (!dsp[handle-1].init) return;
+	if (dsp[handle-1].init->driver->deInit) dsp[handle-1].init->driver->deInit();
+	dsp[handle-1] = (DSP_InfoStruct_t){0,0,0};
 }
 
 uint16_t dspGetId(uint8_t handle)
@@ -113,11 +115,11 @@ void dspSwitchOn(uint8_t handle, uint8_t active)
     if (dsp[handle-1].init->driver->switchOn) dsp[handle-1].init->driver->switchOn(active);
 }
 
-void dspSetContrast(uint8_t handle, uint32_t level)
+void dspSetBrightnes(uint8_t handle, uint32_t level)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->setContrast) dsp[handle-1].init->driver->setContrast(level);
+    if (dsp[handle-1].init->driver->setBrightnes) dsp[handle-1].init->driver->setBrightnes(level);
 }
 
 void dspDrawPixel(uint8_t handle, uint32_t x, uint32_t y, uint32_t color)
@@ -286,16 +288,14 @@ void dspDrawString(uint8_t handle, uint32_t x, uint32_t y, Font_type_t* font, ui
     if (dsp[handle-1].init->driver->drawString) dsp[handle-1].init->driver->drawString(x,y,font,text,dsp[handle-1].foreColor,allign);
     else
     {
-        uint32_t xscale = dspFontXScale(handle);
-        uint32_t yscale = dspFontYScale(handle);
         uint16_t ch_len = strlen((const char*)text);
-        uint32_t pix_len = calc_pix_len(font, text, ch_len)*xscale;
+        uint32_t pix_len = calc_pix_len(font, text, ch_len);
         uint32_t sx, sy;
 
         while (pix_len > dspGetScreenWidth(handle))
         {
             ch_len--;
-            pix_len = calc_pix_len(font, text, ch_len)*xscale;
+            pix_len = calc_pix_len(font, text, ch_len);
         }
 
         sy = y;
@@ -317,7 +317,7 @@ void dspDrawString(uint8_t handle, uint32_t x, uint32_t y, Font_type_t* font, ui
             case DSP_TextAllignCenter:
             {
                 sx = x - (pix_len/2);
-                sy -= (font->height/2)*yscale;
+                sy -= (font->height/2);
                 break;
             }
         }
@@ -395,6 +395,13 @@ void dspDrawImage(uint8_t handle, uint32_t x, uint32_t y, DSP_Image_t* img)
 //
 //
 //
+
+void dspRotate(uint8_t handle, uint8_t angle_code)
+{
+	if (!handle) return;
+	if (!dsp[handle-1].init) return;
+	if (dsp[handle-1].init->driver->rotate) dsp[handle-1].init->driver->rotate(angle_code);
+}
 
 void dspDrawElipse(uint8_t handle, uint32_t x, uint32_t y, uint32_t xrad, uint32_t yrad)
 {
@@ -539,21 +546,3 @@ void dspFillRectangleGradient(uint8_t handle, uint32_t x1, uint32_t y1, uint32_t
     dsp[handle-1].foreColor = color;
 }
 
-//
-//Prvate members
-//
-uint8_t dspFontXScale(uint8_t handle)
-{
-    if (!handle) return 0;
-    if (!dsp[handle-1].init) return 0;
-    if (dsp[handle-1].init->driver->fontXScale) return dsp[handle-1].init->driver->fontXScale();
-    else return 1;
-}
-
-uint8_t dspFontYScale(uint8_t handle)
-{
-    if (!handle) return 0;
-    if (!dsp[handle-1].init) return 0;
-    if (dsp[handle-1].init->driver->fontYScale) return dsp[handle-1].init->driver->fontYScale();
-    else return 1;
-}

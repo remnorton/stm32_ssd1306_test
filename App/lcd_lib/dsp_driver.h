@@ -65,6 +65,13 @@ enum
     DSP_GRADIENT_VERTICAL
 };
 
+enum
+{
+	DSP_Rotate_0 = 0,
+	DSP_Rotate_90,
+	DSP_Rotate_180,
+	DSP_Rotate_270
+};
 
 typedef union
 {
@@ -83,14 +90,15 @@ typedef union
 
 typedef struct
 {
-    void        (*init)(void*);
+    uint8_t     (*init)(void*);
+    void		(*deInit)();
     uint16_t    (*getId)();
     uint16_t    (*screenWidth)();
     uint16_t    (*screenHeight)();
     void        (*clearScreen)(uint32_t);
     void        (*setInverse)(uint8_t);
     void        (*switchOn)(uint8_t);
-    void        (*setContrast)(uint32_t);
+    void        (*setBrightnes)(uint32_t);
     void        (*drawPixel)(uint32_t, uint32_t, uint32_t);
     void        (*drawLine)(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
     void        (*drawRectangle)(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
@@ -106,8 +114,7 @@ typedef struct
     void        (*drawBitmap)(uint32_t, uint32_t, DSP_Bitmap_t*, uint32_t/*color*/);
     void		(*drawImage)(uint32_t, uint32_t, DSP_Image_t*);
     RGB_Color_t (*decodeColor)(uint32_t);
-    uint8_t     (*fontXScale)();
-    uint8_t     (*fontYScale)();
+    void		(*rotate)(uint8_t);
 
 }DSP_DriverDef_t;
 

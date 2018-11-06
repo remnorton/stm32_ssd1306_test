@@ -15,6 +15,8 @@ typedef struct
 {
     I2C_HandleTypeDef* i2c;
     uint8_t dsp_addr;
+    uint8_t	height;
+    uint8_t	yellow_lines;
 }SSD1306_INIT_t;
 
 #endif // SSD1306_H
