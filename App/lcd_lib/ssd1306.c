@@ -12,12 +12,8 @@
 #define _SSD1306_ID_                (uint16_t)0x1306
 #define _SSD1306_SCREEN_WIDTH_      (uint16_t)128
 #define _SSD1306_BPP_               (uint32_t)0x01
-#define _SSD1306_YELLOW_LINES_		(uint8_t)0x10	//16 yellow lines.
-
-#define _SSD1306_CMD_BUF_LEN_       (uint16_t)50
 
 static SSD1306_INIT_t* instance = 0;
-//static uint8_t screen_buffer[_SSD1306_SCREEN_WIDTH_*_SSD1306_SCREEN_HEIGHT_/8];
 static uint8_t* screen_buffer = 0;
 static uint16_t buf_size = 0;
 
@@ -240,7 +236,7 @@ void ssd1306_rotate(uint8_t angle_code)
 		}
 		case DSP_Rotate_180:
 		{
-			uint8_t cmd[] = {0xc0,0xa0,0xd3,_SSD1306_YELLOW_LINES_};
+			uint8_t cmd[] = {0xc0,0xa0,0xd3,instance->yellow_lines};
 			ssd1306_send_commands(cmd, sizeof(cmd));
 			break;
 		}
