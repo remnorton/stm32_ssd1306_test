@@ -53,6 +53,14 @@
 #define LCD_BL_GPIO_Port GPIOA
 #define LED1_Pin GPIO_PIN_0
 #define LED1_GPIO_Port GPIOB
+#define LCD_WR_Pin GPIO_PIN_12
+#define LCD_WR_GPIO_Port GPIOD
+#define LCD_RD_Pin GPIO_PIN_13
+#define LCD_RD_GPIO_Port GPIOD
+#define LCD_CS_Pin GPIO_PIN_14
+#define LCD_CS_GPIO_Port GPIOD
+#define LCD_RS_Pin GPIO_PIN_15
+#define LCD_RS_GPIO_Port GPIOD
 
 /* ########################## Assert Selection ############################## */
 /**

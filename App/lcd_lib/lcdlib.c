@@ -55,7 +55,7 @@ void dspClose(uint8_t handle)
 {
 	if (!handle) return;
 	if (!dsp[handle-1].init) return;
-	if (dsp[handle-1].init->driver->deInit) dsp[handle-1].init->driver->deInit();
+	if (dsp[handle-1].init->driver->deInit) dsp[handle-1].init->driver->deInit(dsp[handle-1].init->drvSettings);
 	dsp[handle-1] = (DSP_InfoStruct_t){0,0,0};
 }
 
@@ -63,21 +63,21 @@ uint16_t dspGetId(uint8_t handle)
 {
     if (!handle) return 0;
     if (!dsp[handle-1].init) return 0;
-    return dsp[handle-1].init->driver->getId();
+    return dsp[handle-1].init->driver->getId(dsp[handle-1].init->drvSettings);
 }
 
 uint16_t dspGetScreenWidth(uint8_t handle)
 {
     if (!handle) return 0;
     if (!dsp[handle-1].init) return 0;
-    return dsp[handle-1].init->driver->screenWidth();
+    return dsp[handle-1].init->driver->screenWidth(dsp[handle-1].init->drvSettings);
 }
 
 uint16_t dspGetScreenHeight(uint8_t handle)
 {
     if (!handle) return 0;
     if (!dsp[handle-1].init) return 0;
-    return dsp[handle-1].init->driver->screenHeight();
+    return dsp[handle-1].init->driver->screenHeight(dsp[handle-1].init->drvSettings);
 }
 
 void dspSetColor(uint8_t handle, uint32_t color)
@@ -98,42 +98,42 @@ void dspClearScreen(uint8_t handle)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    dsp[handle-1].init->driver->clearScreen(dsp[handle-1].bkColor);
+    dsp[handle-1].init->driver->clearScreen(dsp[handle-1].init->drvSettings,dsp[handle-1].bkColor);
 }
 
 void dspSetInverse(uint8_t handle, uint8_t inverse)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->setInverse) dsp[handle-1].init->driver->setInverse(inverse);
+    if (dsp[handle-1].init->driver->setInverse) dsp[handle-1].init->driver->setInverse(dsp[handle-1].init->drvSettings,inverse);
 }
 
 void dspSwitchOn(uint8_t handle, uint8_t active)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->switchOn) dsp[handle-1].init->driver->switchOn(active);
+    if (dsp[handle-1].init->driver->switchOn) dsp[handle-1].init->driver->switchOn(dsp[handle-1].init->drvSettings,active);
 }
 
 void dspSetBrightnes(uint8_t handle, uint32_t level)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->setBrightnes) dsp[handle-1].init->driver->setBrightnes(level);
+    if (dsp[handle-1].init->driver->setBrightnes) dsp[handle-1].init->driver->setBrightnes(dsp[handle-1].init->drvSettings,level);
 }
 
 void dspDrawPixel(uint8_t handle, uint32_t x, uint32_t y, uint32_t color)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->drawPixel) dsp[handle-1].init->driver->drawPixel(x,y,color);
+    if (dsp[handle-1].init->driver->drawPixel) dsp[handle-1].init->driver->drawPixel(dsp[handle-1].init->drvSettings,x,y,color);
 }
 
 void dspDrawLine(uint8_t handle, uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->drawLine) dsp[handle-1].init->driver->drawLine(x1,y1,x2,y2,dsp[handle-1].foreColor);
+    if (dsp[handle-1].init->driver->drawLine) dsp[handle-1].init->driver->drawLine(dsp[handle-1].init->drvSettings,x1,y1,x2,y2,dsp[handle-1].foreColor);
     else
     {
         int32_t dx = (x2-x1);
@@ -221,7 +221,7 @@ void dspDrawRectangle(uint8_t handle, uint32_t x, uint32_t y, uint32_t width, ui
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->drawRectangle) dsp[handle-1].init->driver->drawRectangle(x,y,width,height,dsp[handle-1].foreColor);
+    if (dsp[handle-1].init->driver->drawRectangle) dsp[handle-1].init->driver->drawRectangle(dsp[handle-1].init->drvSettings,x,y,width,height,dsp[handle-1].foreColor);
     else
     {
         dspDrawLine(handle,x,y,x+width,y);
@@ -235,7 +235,7 @@ void dspFillRectangle(uint8_t handle, uint32_t x, uint32_t y, uint32_t width, ui
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->fillRectangle) dsp[handle-1].init->driver->fillRectangle(x,y,width,height,dsp[handle-1].foreColor);
+    if (dsp[handle-1].init->driver->fillRectangle) dsp[handle-1].init->driver->fillRectangle(dsp[handle-1].init->drvSettings,x,y,width,height,dsp[handle-1].foreColor);
     else
         for (uint16_t ly = y; ly <=(y+ height); ly++)
             dspDrawLine(handle,x,ly,x+width,ly);
@@ -245,7 +245,7 @@ uint16_t dspDrawChar(uint8_t handle, uint32_t x, uint32_t y, Font_type_t* font, 
 {
     if (!handle) return 0;
     if (!dsp[handle-1].init) return 0;
-    if (dsp[handle-1].init->driver->drawChar) return dsp[handle-1].init->driver->drawChar(x,y,font,sym,dsp[handle-1].foreColor);
+    if (dsp[handle-1].init->driver->drawChar) return dsp[handle-1].init->driver->drawChar(dsp[handle-1].init->drvSettings,x,y,font,sym,dsp[handle-1].foreColor);
     else
     {
         if (!font) return 0;
@@ -285,7 +285,7 @@ void dspDrawString(uint8_t handle, uint32_t x, uint32_t y, Font_type_t* font, ui
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->drawString) dsp[handle-1].init->driver->drawString(x,y,font,text,dsp[handle-1].foreColor,allign);
+    if (dsp[handle-1].init->driver->drawString) dsp[handle-1].init->driver->drawString(dsp[handle-1].init->drvSettings,x,y,font,text,dsp[handle-1].foreColor,allign);
     else
     {
         uint16_t ch_len = strlen((const char*)text);
@@ -334,28 +334,28 @@ void dspSendCommands(uint8_t handle, uint8_t* commands, uint8_t len)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->sendCommands) dsp[handle-1].init->driver->sendCommands(commands, len);
+    if (dsp[handle-1].init->driver->sendCommands) dsp[handle-1].init->driver->sendCommands(dsp[handle-1].init->drvSettings,commands, len);
 }
 
 void dspSendData(uint8_t handle, uint8_t* data, uint16_t len)
 {
 	if (!handle) return;
 	if (!dsp[handle-1].init) return;
-	if (dsp[handle-1].init->driver->sendData) dsp[handle-1].init->driver->sendData(data, len);
+	if (dsp[handle-1].init->driver->sendData) dsp[handle-1].init->driver->sendData(dsp[handle-1].init->drvSettings,data, len);
 }
 
 void dspPushScreen(uint8_t handle)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->pushData) dsp[handle-1].init->driver->pushData();
+    if (dsp[handle-1].init->driver->pushData) dsp[handle-1].init->driver->pushData(dsp[handle-1].init->drvSettings);
 }
 
 uint32_t dspRgbaColor(uint8_t handle, uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
 {
     if (!handle) return 0;
     if (!dsp[handle-1].init) return 0;
-    if (dsp[handle-1].init->driver->rgbColor) return dsp[handle-1].init->driver->rgbColor(red, green, blue, alpha);
+    if (dsp[handle-1].init->driver->rgbColor) return dsp[handle-1].init->driver->rgbColor(dsp[handle-1].init->drvSettings,red, green, blue, alpha);
     return 0;
 }
 
@@ -368,7 +368,7 @@ uint32_t dspPixColor(uint8_t handle, uint32_t x, uint32_t y)
 {
     if (!handle) return 0;
     if (!dsp[handle-1].init) return 0;
-    if (dsp[handle-1].init->driver->pixelColor) return dsp[handle-1].init->driver->pixelColor(x,y);
+    if (dsp[handle-1].init->driver->pixelColor) return dsp[handle-1].init->driver->pixelColor(dsp[handle-1].init->drvSettings,x,y);
     return 0;
 }
 
@@ -376,7 +376,7 @@ uint32_t dspBitPerPixel(uint8_t handle)
 {
     if (!handle) return 0;
     if (!dsp[handle-1].init) return 0;
-    if (dsp[handle-1].init->driver->bitPerPixel) return dsp[handle-1].init->driver->bitPerPixel();
+    if (dsp[handle-1].init->driver->bitPerPixel) return dsp[handle-1].init->driver->bitPerPixel(dsp[handle-1].init->drvSettings);
     return 0;
 }
 
@@ -384,7 +384,7 @@ void dspDrawBitmap(uint8_t handle, uint32_t x, uint32_t y, DSP_Bitmap_t* bmp)
 {
     if (!handle) return;
     if (!dsp[handle-1].init) return;
-    if (dsp[handle-1].init->driver->drawBitmap) dsp[handle-1].init->driver->drawBitmap(x,y,bmp,dsp[handle-1].foreColor);
+    if (dsp[handle-1].init->driver->drawBitmap) dsp[handle-1].init->driver->drawBitmap(dsp[handle-1].init->drvSettings,x,y,bmp,dsp[handle-1].foreColor);
 }
 
 void dspDrawImage(uint8_t handle, uint32_t x, uint32_t y, DSP_Image_t* img)
@@ -400,7 +400,7 @@ void dspRotate(uint8_t handle, uint8_t angle_code)
 {
 	if (!handle) return;
 	if (!dsp[handle-1].init) return;
-	if (dsp[handle-1].init->driver->rotate) dsp[handle-1].init->driver->rotate(angle_code);
+	if (dsp[handle-1].init->driver->rotate) dsp[handle-1].init->driver->rotate(dsp[handle-1].init->drvSettings,angle_code);
 }
 
 void dspDrawElipse(uint8_t handle, uint32_t x, uint32_t y, uint32_t xrad, uint32_t yrad)
@@ -488,7 +488,7 @@ void dspFillRectangleGradient(uint8_t handle, uint32_t x1, uint32_t y1, uint32_t
     if (!dsp[handle-1].init->driver->decodeColor) return;
     if (!dsp[handle-1].init->driver->bitPerPixel) return;
     if (!dsp[handle-1].init->driver->rgbColor) return;
-    if (dsp[handle-1].init->driver->bitPerPixel() < 12) return;
+    if (dsp[handle-1].init->driver->bitPerPixel(dsp[handle-1].init->drvSettings) < 12) return;
 
 
     int32_t dx = (x2-x1);
@@ -502,8 +502,8 @@ void dspFillRectangleGradient(uint8_t handle, uint32_t x1, uint32_t y1, uint32_t
 
     //uint16_t line_len = (orientation == DSP_GRADIENT_HORIZONTAL)?ABS(y2-y1):ABS(x2-x1);
     uint16_t lines_count = (orientation == DSP_GRADIENT_HORIZONTAL)?ABS(x2-x1):ABS(y2-y1);
-    RGB_Color_t start_struct = dsp[handle-1].init->driver->decodeColor(startColor);
-    RGB_Color_t stop_struct = dsp[handle-1].init->driver->decodeColor(stopColor);
+    RGB_Color_t start_struct = dsp[handle-1].init->driver->decodeColor(dsp[handle-1].init->drvSettings,startColor);
+    RGB_Color_t stop_struct = dsp[handle-1].init->driver->decodeColor(dsp[handle-1].init->drvSettings,stopColor);
 
     uint16_t line_red = start_struct.red*100;
     uint16_t line_green = start_struct.green*100;
@@ -522,7 +522,7 @@ void dspFillRectangleGradient(uint8_t handle, uint32_t x1, uint32_t y1, uint32_t
 
         while (!end)
         {
-            dsp[handle-1].foreColor = dsp[handle-1].init->driver->rgbColor(line_red/100, line_green/100, line_blue/100, 255);
+            dsp[handle-1].foreColor = dsp[handle-1].init->driver->rgbColor(dsp[handle-1].init->drvSettings,line_red/100, line_green/100, line_blue/100, 255);
 
             if (orientation == DSP_GRADIENT_HORIZONTAL)
             {

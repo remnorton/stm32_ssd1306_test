@@ -91,30 +91,30 @@ typedef union
 typedef struct
 {
     uint8_t     (*init)(void*);
-    void		(*deInit)();
-    uint16_t    (*getId)();
-    uint16_t    (*screenWidth)();
-    uint16_t    (*screenHeight)();
-    void        (*clearScreen)(uint32_t);
-    void        (*setInverse)(uint8_t);
-    void        (*switchOn)(uint8_t);
-    void        (*setBrightnes)(uint32_t);
-    void        (*drawPixel)(uint32_t, uint32_t, uint32_t);
-    void        (*drawLine)(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
-    void        (*drawRectangle)(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
-    void        (*fillRectangle)(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
-    uint16_t    (*drawChar)(uint32_t, uint32_t, Font_type_t*, uint8_t, uint32_t);
-    void        (*drawString)(uint32_t, uint32_t, Font_type_t*, uint8_t*, uint32_t, uint8_t);
-    void        (*sendCommands)(uint8_t*, uint8_t);
-    void		(*sendData)(uint8_t*, uint16_t);
-    void        (*pushData)();
-    uint32_t    (*rgbColor)(uint8_t, uint8_t, uint8_t, uint8_t);
-    uint32_t    (*pixelColor)(uint32_t, uint32_t);
-    uint32_t    (*bitPerPixel)();
-    void        (*drawBitmap)(uint32_t, uint32_t, DSP_Bitmap_t*, uint32_t/*color*/);
-    void		(*drawImage)(uint32_t, uint32_t, DSP_Image_t*);
-    RGB_Color_t (*decodeColor)(uint32_t);
-    void		(*rotate)(uint8_t);
+    void		(*deInit)(void*);
+    uint16_t    (*getId)(void*);
+    uint16_t    (*screenWidth)(void*);
+    uint16_t    (*screenHeight)(void*);
+    void        (*clearScreen)(void*,uint32_t);
+    void        (*setInverse)(void*,uint8_t);
+    void        (*switchOn)(void*,uint8_t);
+    void        (*setBrightnes)(void*,uint32_t);
+    void        (*drawPixel)(void*,uint32_t, uint32_t, uint32_t);
+    void        (*drawLine)(void*,uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+    void        (*drawRectangle)(void*,uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+    void        (*fillRectangle)(void*,uint32_t, uint32_t, uint32_t, uint32_t, uint32_t);
+    uint16_t    (*drawChar)(void*,uint32_t, uint32_t, Font_type_t*, uint8_t, uint32_t);
+    void        (*drawString)(void*,uint32_t, uint32_t, Font_type_t*, uint8_t*, uint32_t, uint8_t);
+    void        (*sendCommands)(void*,uint8_t*, uint8_t);
+    void		(*sendData)(void*,uint8_t*, uint16_t);
+    void        (*pushData)(void*);
+    uint32_t    (*rgbColor)(void*,uint8_t, uint8_t, uint8_t, uint8_t);
+    uint32_t    (*pixelColor)(void*,uint32_t, uint32_t);
+    uint32_t    (*bitPerPixel)(void*);
+    void        (*drawBitmap)(void*,uint32_t, uint32_t, DSP_Bitmap_t*, uint32_t/*color*/);
+    void		(*drawImage)(void*,uint32_t, uint32_t, DSP_Image_t*);
+    RGB_Color_t (*decodeColor)(void*,uint32_t);
+    void		(*rotate)(void*,uint8_t);
 
 }DSP_DriverDef_t;
 
